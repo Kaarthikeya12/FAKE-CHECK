@@ -1,0 +1,7 @@
+{
+    "python.analysis.extraPaths": [
+        "./Backend",
+        "./Backend/app/routes/factcheck_",
+        "./Backend"
+    ]
+}

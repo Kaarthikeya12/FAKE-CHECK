@@ -3,16 +3,20 @@
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, ShieldCheck, Mail, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/firebase/config";
+
 
 export default function LoginPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-
+  const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -50,12 +54,61 @@ export default function LoginPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      console.log("Login submitted:", formData, "Remember me:", rememberMe);
-      // After successful login, redirect to dashboard or home
-      router.push("/dashboard");
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+    setMessage("");
+    setErrors({});
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+
+      console.log("========== LOGIN SUCCESSFUL ==========");
+      console.log("User ID:", userCredential.user.uid);
+      console.log("Email:", userCredential.user.email);
+      console.log("Remember Me:", rememberMe);
+      console.log("======================================");
+
+      setMessage("✅ Logged in successfully!");
+
+      // Redirect to dashboard after successful login
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
+
+    } catch (error: any) {
+      console.error("Firebase Auth Error:", error);
+
+      // Handle specific Firebase errors
+      let errorMessage = "Failed to sign in. Please try again.";
+      
+      if (error.code === "auth/user-not-found") {
+        errorMessage = "No account found with this email. Please sign up.";
+      } else if (error.code === "auth/wrong-password") {
+        errorMessage = "Incorrect password. Please try again.";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Invalid email address.";
+      } else if (error.code === "auth/user-disabled") {
+        errorMessage = "This account has been disabled.";
+      } else if (error.code === "auth/too-many-requests") {
+        errorMessage = "Too many failed attempts. Please try again later.";
+      } else if (error.code === "auth/invalid-credential") {
+        errorMessage = "Invalid email or password. Please check your credentials.";
+      }
+
+      setMessage("❌ " + errorMessage);
+      setErrors((prev) => ({ ...prev, submit: errorMessage }));
+    } finally {
+      setIsLoading(false);
     }
   };
 

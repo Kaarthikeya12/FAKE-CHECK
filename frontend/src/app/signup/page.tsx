@@ -3,25 +3,21 @@
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, ShieldCheck, Mail, Lock, User } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
+import { auth } from "@/firebase/config";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
 export default function SignUpPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  // const [formData, setFormData] = useState({
-  //   name: "",
-  //   email: "",
-  //   password: "",
-  //   confirmPassword: "",
-  // });
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [message, setMessage] = useState("");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [agreeToTerms, setAgreeToTerms] = useState(false);
@@ -79,13 +75,46 @@ export default function SignUpPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      console.log("Sign up submitted:", formData);
-      
-      // After successful signup, redirect to login
-      router.push("/login");
+      try {
+        // Create user with Firebase Auth
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          formData.email,
+          formData.password
+        );
+        
+        console.log("========== SIGNUP SUCCESSFUL ==========");
+        console.log("User ID:", userCredential.user.uid);
+        console.log("Email:", userCredential.user.email);
+        console.log("Name:", formData.name);
+        console.log("======================================");
+        
+        setMessage("✅ User registered successfully!");
+        
+        // Navigate to dashboard after successful signup
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 1000);
+        
+      } catch (error: any) {
+        console.error("Firebase Auth Error:", error);
+        
+        // Handle specific Firebase errors
+        let errorMessage = "Failed to create account. Please try again.";
+        if (error.code === "auth/email-already-in-use") {
+          errorMessage = "This email is already registered. Please sign in instead.";
+        } else if (error.code === "auth/invalid-email") {
+          errorMessage = "Invalid email address.";
+        } else if (error.code === "auth/weak-password") {
+          errorMessage = "Password is too weak. Please use a stronger password.";
+        }
+        
+        setMessage("❌ " + errorMessage);
+        setErrors((prev) => ({ ...prev, submit: errorMessage }));
+      }
     }
   };
 

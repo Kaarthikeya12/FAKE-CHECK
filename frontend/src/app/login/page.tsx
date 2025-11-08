@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/firebase/config";
 
-
 export default function LoginPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -56,7 +55,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -84,13 +83,12 @@ export default function LoginPage() {
       setTimeout(() => {
         router.push("/dashboard");
       }, 1000);
-
     } catch (error: any) {
       console.error("Firebase Auth Error:", error);
 
       // Handle specific Firebase errors
       let errorMessage = "Failed to sign in. Please try again.";
-      
+
       if (error.code === "auth/user-not-found") {
         errorMessage = "No account found with this email. Please sign up.";
       } else if (error.code === "auth/wrong-password") {
@@ -102,7 +100,8 @@ export default function LoginPage() {
       } else if (error.code === "auth/too-many-requests") {
         errorMessage = "Too many failed attempts. Please try again later.";
       } else if (error.code === "auth/invalid-credential") {
-        errorMessage = "Invalid email or password. Please check your credentials.";
+        errorMessage =
+          "Invalid email or password. Please check your credentials.";
       }
 
       setMessage("❌ " + errorMessage);

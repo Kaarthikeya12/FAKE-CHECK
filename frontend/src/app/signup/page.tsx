@@ -4,24 +4,17 @@ import { useState, useEffect } from "react";
 import { Eye, EyeOff, ShieldCheck, Mail, Lock, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
-
 export default function SignUpPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  // const [formData, setFormData] = useState({
-  //   name: "",
-  //   email: "",
-  //   password: "",
-  //   confirmPassword: "",
-  // });
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [agreeToTerms, setAgreeToTerms] = useState(false);
@@ -81,11 +74,11 @@ export default function SignUpPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("*****sign in****");
+    console.log(formData);
     if (validateForm()) {
       console.log("Sign up submitted:", formData);
-      
-      // After successful signup, redirect to login
-      router.push("/login");
+      router.push("/dashboard");
     }
   };
 

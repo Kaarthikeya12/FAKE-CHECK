@@ -1,0 +1,36 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/next"
+    },
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/verify/:path*",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/health",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/test",
+      "destination": "/api/index.py"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "frontend/$1"
+    }
+  ],
+  "env": {
+    "PYTHON_VERSION": "3.11"
+  }
+}

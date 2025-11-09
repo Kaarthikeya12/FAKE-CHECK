@@ -2,6 +2,14 @@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
+// Optional: Save to Firestore after verification
+export interface SaveVerificationOptions {
+  userId?: string;
+  inputType?: 'url' | 'text' | 'image';
+  input?: string;
+  verificationTime?: number;
+}
+
 export interface VerificationResult {
   verdict?: string;
   credibility_score?: number;

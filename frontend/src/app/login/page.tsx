@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, ShieldCheck, Mail, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/firebase/config";
 
 export default function LoginPage() {
@@ -21,7 +21,16 @@ export default function LoginPage() {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    // Redirect to home if already logged in
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.replace("/");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
 
   // Add style to hide browser password reveal buttons
   const passwordInputStyle = {
@@ -79,7 +88,7 @@ export default function LoginPage() {
 
       setMessage("✅ Logged in successfully!");
 
-      // Redirect to dashboard after successful login
+      // Redirect to home/dashboard after successful login
       setTimeout(() => {
         router.push("/dashboard");
       }, 1000);

@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { Eye, EyeOff, ShieldCheck, Mail, Lock, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { auth } from "@/firebase/config";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import { saveUserToFirestore } from "@/lib/firestore";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -24,7 +25,16 @@ export default function SignUpPage() {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    // Redirect to home if already logged in
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.replace("/dashboard");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
 
   const passwordInputStyle = {
     WebkitTextSecurity: showPassword ? "none" : "disc",
@@ -92,9 +102,22 @@ export default function SignUpPage() {
         console.log("Name:", formData.name);
         console.log("======================================");
         
+        // Save user credentials to Firestore
+        try {
+          await saveUserToFirestore(
+            userCredential.user.uid,
+            userCredential.user.email || formData.email,
+            formData.name
+          );
+          console.log("✅ User credentials saved to Firestore");
+        } catch (firestoreError) {
+          console.error("❌ Error saving user to Firestore:", firestoreError);
+          // Continue even if Firestore save fails
+        }
+        
         setMessage("✅ User registered successfully!");
         
-        // Navigate to dashboard after successful signup
+        // Navigate to home/dashboard after successful signup
         setTimeout(() => {
           router.push("/dashboard");
         }, 1000);
@@ -123,7 +146,7 @@ export default function SignUpPage() {
   };
 
   const handleLoginRedirect = () => {
-    router.push("/login");
+    router.push('/login');
   };
 
   if (!mounted) {

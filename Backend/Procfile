@@ -1,0 +1,2 @@
+web: cd Backend && gunicorn wsgi:app
+
